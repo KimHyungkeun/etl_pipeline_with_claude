@@ -1,5 +1,5 @@
-./etl-cluster/metastore_db
-./etl-cluster/minio-data
-./etl-cluster/metastore_db
+etl-cluster/metastore_db/
+etl-cluster/minio-data/
 
-./spark-fastapi-ui/node_modules
+
+spark-fastapi-ui/node_modules/
