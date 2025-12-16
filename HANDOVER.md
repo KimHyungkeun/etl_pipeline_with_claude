@@ -338,13 +338,55 @@ spark-submit --version
 node --version
 ```
 
-### 4.2 환경 변수 설정
+### 4.2 Apache Spark 설치
+
+#### Spark 3.5.3 다운로드 및 설치
+
+```bash
+# 1. HOME 디렉토리로 이동
+cd ${HOME}
+
+# 2. Apache Spark 3.5.3 다운로드
+wget https://archive.apache.org/dist/spark/spark-3.5.3/spark-3.5.3-bin-hadoop3.tgz
+
+# 3. 압축 해제
+tar -xzf spark-3.5.3-bin-hadoop3.tgz
+
+# 4. 심볼릭 링크 생성 (spark → spark-3.5.3-bin-hadoop3)
+ln -s ${HOME}/spark-3.5.3-bin-hadoop3 ${HOME}/spark
+
+# 5. 다운로드 파일 정리 (선택)
+rm spark-3.5.3-bin-hadoop3.tgz
+```
+
+#### 환경 변수 설정
+
+`~/.bashrc` 또는 `~/.zshrc`에 다음 추가:
+
+```bash
+export SPARK_HOME=${HOME}/spark
+export PATH=$PATH:$SPARK_HOME/bin:$SPARK_HOME/sbin
+```
+
+설정 적용:
+```bash
+source ~/.bashrc  # 또는 source ~/.zshrc
+```
+
+#### 설치 확인
+
+```bash
+spark-submit --version
+# Spark 3.5.3이 출력되면 설치 완료
+```
+
+### 4.3 환경 변수 설정
 
 #### spark-fastapi/.env
 ```env
 SPARK_MASTER_URL=http://localhost:8080
 SPARK_SUBMIT_MASTER=spark://localhost:7077
-SPARK_HOME=/home/hkkim/spark
+SPARK_HOME=${HOME}/spark
 ```
 
 #### /etc/hosts 설정 (로컬에서 Docker 컨테이너 이름 접근)
@@ -357,13 +399,13 @@ sudo tee -a /etc/hosts <<EOF
 EOF
 ```
 
-### 4.3 단계별 설치 가이드
+### 4.4 단계별 설치 가이드
 
 #### 🚀 자동 설정 (권장)
 
 **한 번에 모든 환경 설정**:
 ```bash
-cd /home/hkkim/etl-cluster-test
+cd ${HOME}/etl-cluster-test
 ./scripts/setup.sh
 ```
 
@@ -478,7 +520,7 @@ cd ../spark-fastapi-ui
 npm install
 ```
 
-### 4.4 첫 실행 체크리스트
+### 4.5 첫 실행 체크리스트
 
 - [ ] Docker 컨테이너 8개 모두 `Up` 상태
 - [ ] Kafka UI (http://localhost:9090) 접속 가능
@@ -522,7 +564,7 @@ npm run dev
 
 **🚀 자동 종료 (권장)**:
 ```bash
-cd /home/hkkim/etl-cluster-test
+cd ${HOME}/etl-cluster-test
 ./scripts/teardown.sh
 ```
 
@@ -830,7 +872,7 @@ curl -X DELETE http://localhost:8000/api/v1/jobs/apps/app-20241211000001-0001 | 
 curl -X POST http://localhost:8000/api/v1/jobs/submit \
   -H "Content-Type: application/json" \
   -d '{
-    "script_path": "/home/hkkim/etl-cluster-test/iot-pipeline/spark-jobs/pyspark-jobs/batch_aggregation.py",
+    "script_path": "${HOME}/etl-cluster-test/iot-pipeline/spark-jobs/pyspark-jobs/batch_aggregation.py",
     "driver_memory": "2g",
     "executor_memory": "2g",
     "executor_cores": 2,

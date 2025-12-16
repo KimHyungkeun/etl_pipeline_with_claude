@@ -1,0 +1,103 @@
+services:
+  kafka-broker-1:
+    image: apache/kafka:3.9.1
+    container_name: kafka-broker-1
+    hostname: kafka-broker-1
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      # -------------------- [KRaft Cluster/Node Identification] --------------------
+
+      # 해당 Kafka 노드의 고유 ID입니다.
+      # KRaft 모드에서는 이 ID가 브로커와 컨트롤러 모두에게 사용됩니다.
+      KAFKA_NODE_ID: 1
+
+      # 이 노드가 수행할 역할(Role)을 지정합니다.
+      # 'broker'는 데이터 처리를, 'controller'는 클러스터 메타데이터 관리(ZooKeeper 대체)를 담당합니다.
+      KAFKA_PROCESS_ROLES: broker,controller
+
+      # 쿼럼(Quorum)을 구성하는 컨트롤러 노드의 목록을 정의합니다.
+      # 형식: [Node ID]@[Host]:[Port]
+      # 이 예시에서는 노드 1번이 호스트 'kafka-broker-1'의 9093 포트로 쿼럼에 참여함을 의미합니다.
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-broker-1:9093
+
+      # 클러스터 전체에서 사용할 고유 식별자입니다.
+      # KRaft 환경 초기화 시 생성되며, 모든 노드가 동일해야 합니다.
+      CLUSTER_ID: etl-kafka-cluster-0001
+
+
+      # -------------------- [Listener and Network Configuration] --------------------
+
+      # Kafka 노드가 수신 대기(Listen)할 리스너 목록 및 포트를 정의합니다.
+      # 1. PLAINTEXT: 내부 서비스 및 다른 브로커 통신 (Docker 내부 네트워크)
+      # 2. CONTROLLER: 컨트롤러 쿼럼 통신용
+      # 3. EXTERNAL: 외부(호스트/클라이언트) 접근용
+      KAFKA_LISTENERS: PLAINTEXT://:29092,CONTROLLER://:9093,EXTERNAL://:9092
+
+      # 각 리스너 이름을 클라이언트가 연결할 수 있는 외부 호스트/포트 정보와 매핑합니다.
+      # 클라이언트와 다른 브로커가 통신할 때 사용됩니다.
+      # 1. PLAINTEXT: 내부 통신용 (Docker 내부 서비스 이름: kafka-broker-1)
+      # 2. EXTERNAL: 외부 클라이언트가 접근할 주소 (Host:Port)
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker-1:29092,EXTERNAL://kafka-broker-1:9092
+
+      # 리스너 이름과 보안 프로토콜(여기서는 모두 PLAINTEXT)을 매핑합니다.
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+
+      # 브로커가 컨트롤러 쿼럼에 연결할 때 사용할 리스너 이름을 지정합니다.
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+
+      # 브로커 간 통신(Inter-Broker Communication)에 사용할 리스너 이름을 지정합니다.
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+
+
+      # -------------------- [Topic and Log Management] --------------------
+
+      # Producer가 존재하지 않는 토픽으로 메시지를 전송할 때 토픽을 자동으로 생성할지 여부.
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+
+      # Kafka가 내부적으로 사용하는 __offsets_topic의 복제 계수(Replication Factor)입니다.
+      # 단일 브로커 구성이므로 '1'로 설정되었습니다. 프로덕션 환경에서는 3 이상 권장됩니다.
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+      # 트랜잭션 상태 로그 토픽의 복제 계수입니다.
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+
+      # 트랜잭션 상태 로그 토픽에 쓰기 성공을 위해 필요한 최소 동기화된 복제본 수 (ISR: In-Sync Replicas).
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+
+      # Kafka 데이터(로그 세그먼트)가 저장될 컨테이너 내부 경로를 지정합니다.
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+    volumes:
+      - kafka-data-1:/var/lib/kafka/data
+      - kafka-secrets-1:/etc/kafka/secrets
+      - kafka-config-1:/mnt/shared/config
+    networks:
+      - etl-network
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    hostname: kafka-ui
+    ports:
+      - "9090:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: etl-kafka-cluster
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-broker-1:29092
+      DYNAMIC_CONFIG_ENABLED: "true"
+    depends_on:
+      - kafka-broker-1
+    networks:
+      - etl-network
+
+volumes:
+  kafka-data-1:
+    external: true
+  kafka-secrets-1:
+    external: true
+  kafka-config-1:
+    external: true
+
+networks:
+  etl-network:
+    external: true

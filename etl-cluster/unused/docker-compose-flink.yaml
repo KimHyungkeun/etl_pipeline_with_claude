@@ -1,0 +1,59 @@
+services:
+  flink-jobmanager:
+    image: flink:1.18-scala_2.12-java11
+    container_name: flink-jobmanager
+    hostname: flink-jobmanager
+    ports:
+      - "8083:8081"
+    command: >
+      bash -c "
+        mkdir -p /opt/flink/plugins/s3-fs-hadoop &&
+        cp /opt/flink/opt/flink-s3-fs-hadoop-*.jar /opt/flink/plugins/s3-fs-hadoop/ &&
+        /docker-entrypoint.sh jobmanager
+      "
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: flink-jobmanager
+        jobmanager.rpc.port: 6123
+        jobmanager.memory.process.size: 1600m
+        taskmanager.numberOfTaskSlots: 2
+        parallelism.default: 2
+        s3.endpoint: http://minio:9000
+        s3.path.style.access: true
+        s3.access-key: minioadmin
+        s3.secret-key: minioadmin123
+    networks:
+      - etl-network
+    volumes:
+      - /home/hkkim/etl-cluster-test/iot-pipeline/flink-jobs/target/flink-anomaly-detection-1.0.0.jar:/opt/flink/flink-anomaly-detection-1.0.0.jar
+
+  flink-taskmanager-1:
+    image: flink:1.18-scala_2.12-java11
+    container_name: flink-taskmanager-1
+    hostname: flink-taskmanager-1
+    command: >
+      bash -c "
+        mkdir -p /opt/flink/plugins/s3-fs-hadoop &&
+        cp /opt/flink/opt/flink-s3-fs-hadoop-*.jar /opt/flink/plugins/s3-fs-hadoop/ &&
+        /docker-entrypoint.sh taskmanager
+      "
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: flink-jobmanager
+        jobmanager.rpc.port: 6123
+        taskmanager.memory.process.size: 1728m
+        taskmanager.numberOfTaskSlots: 2
+        s3.endpoint: http://minio:9000
+        s3.path.style.access: true
+        s3.access-key: minioadmin
+        s3.secret-key: minioadmin123
+    depends_on:
+      - flink-jobmanager
+    networks:
+      - etl-network
+
+networks:
+  etl-network:
+    external: true

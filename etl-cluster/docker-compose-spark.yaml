@@ -1,0 +1,54 @@
+services:
+  spark-master:
+    image: apache/spark:3.5.3
+    container_name: spark-master
+    hostname: spark-master
+    ports:
+      - "8080:8080"
+      - "7077:7077"
+    environment:
+      - TZ=Asia/Seoul
+      - SPARK_MODE=master
+      - SPARK_MASTER_HOST=spark-master
+      - SPARK_MASTER_PORT=7077
+      - SPARK_MASTER_WEBUI_PORT=8080
+      - SPARK_MASTER_OPTS="-Duser.timezone=Asia/Seoul -Dspark.master.rest.enabled=true"
+    user: root
+    command: >
+      bash -c " 
+        /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master &     
+        tail -f /dev/null"
+    volumes:
+      # - /home/hkkim/etl-cluster-test/iot-pipeline/spark-jobs/scala-jobs:/opt/spark-jobs
+      - /home/hkkim/etl-cluster-test/iot-pipeline/spark-jobs/pyspark-jobs:/opt/pyspark-jobs
+
+    networks:
+      - etl-network
+
+  spark-worker-1:
+    image: apache/spark:3.5.3
+    container_name: spark-worker-1
+    hostname: spark-worker-1
+    ports:
+      - "8081:8081"
+    environment:
+      - TZ=Asia/Seoul
+      - SPARK_WORKER_OPTS="-Duser.timezone=Asia/Seoul"
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_WEBUI_PORT=8081
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=2g
+    user: root
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    volumes:
+      # - /home/hkkim/etl-cluster-test/iot-pipeline/spark-jobs/scala-jobs:/opt/scala-jobs
+      - /home/hkkim/etl-cluster-test/iot-pipeline/spark-jobs/pyspark-jobs:/opt/pyspark-jobs
+    depends_on:
+      - spark-master
+    networks:
+      - etl-network
+
+networks:
+  etl-network:
+    external: true
