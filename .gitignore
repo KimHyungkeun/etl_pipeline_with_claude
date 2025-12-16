@@ -1,0 +1,5 @@
+./etl-cluster/metastore_db
+./etl-cluster/minio-data
+./etl-cluster/metastore_db
+
+./spark-fastapi-ui/node_modules
