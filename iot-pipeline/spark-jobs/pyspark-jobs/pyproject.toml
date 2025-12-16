@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "iot-spark-batch"
+version = "0.1.0"
+description = "IoT Sensor Batch Processing with PySpark"
+authors = ["hkkim"]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pyspark = "^3.5.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
