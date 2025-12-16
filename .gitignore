@@ -2,5 +2,5 @@ etl-cluster/metastore_db/
 etl-cluster/minio-data/
 *.log
 
-
-spark-fastapi-ui/node_modules/
+target/
+node_modules/
