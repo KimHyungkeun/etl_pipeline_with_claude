@@ -3,4 +3,6 @@ minio-data/
 *.log
 
 target/
+dist/
 node_modules/
+__pycache__/
