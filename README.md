@@ -82,8 +82,8 @@ IoT 센서 데이터(온도, 습도, 압력)를 **실시간으로 수집·처리
 
 | 컴포넌트 | 역할 | 기술 스택 |
 |---------|------|----------|
-| **iot-pipeline/generator** | 센서 데이터 생성기 | Python 3.11, kafka-python |
-| **iot-pipeline/spark-jobs** | 배치 데이터 집계 | PySpark 3.5.3, Apache Iceberg |
+| **iot-pipeline/generator** | 센서 데이터 생성기 | Python 3.11, Kafka, python |
+| **iot-pipeline/spark-jobs** | 배치 데이터 집계 | Apache Spark 3.5.3, Apache Iceberg |
 | **etl-cluster** | 인프라 환경 | Docker Compose (Kafka, Spark, PostgreSQL, MinIO) |
 | **spark-fastapi** | Spark 클러스터 관리 API | FastAPI, httpx, Pydantic |
 | **spark-fastapi-ui** | 웹 모니터링 대시보드 | React, TypeScript, Vite |
