@@ -1,5 +1,5 @@
-etl-cluster/metastore_db/
-etl-cluster/minio-data/
+metastore_db/
+minio-data/
 *.log
 
 target/
